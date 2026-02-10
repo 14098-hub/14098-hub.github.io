@@ -1,340 +1,368 @@
-import React, { useState } from 'react';
-import { ShoppingCart, User, Home, CreditCard, Trash2, Plus, Minus, CheckCircle, Search, Menu, X } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freshy Smoothie - ร้านน้ำปั่นออนไลน์</title>
+    
+    <!-- นำเข้า Tailwind CSS (เพื่อความสวยงามโดยไม่ต้องเขียน CSS เองเยอะ) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- นำเข้าไอคอนจาก FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-// --- ข้อมูลจำลอง (Mock Data) ปรับเป็นเมนูน้ำปั่นล้วน ---
-const PRODUCTS = [
-  { id: 1, name: "แตงโมปั่นเย็นชื่นใจ", price: 35, category: "Fruit", image: "🍉", color: "bg-red-100" },
-  { id: 2, name: "มะม่วงน้ำดอกไม้ปั่น", price: 50, category: "Fruit", image: "🥭", color: "bg-yellow-100" },
-  { id: 3, name: "สตรอว์เบอร์รี่โยเกิร์ตสมูทตี้", price: 55, category: "Yogurt", image: "🍓", color: "bg-pink-100" },
-  { id: 4, name: "มะนาวปั่นจี๊ดจ๊าด", price: 40, category: "Fruit", image: "🍋", color: "bg-green-100" },
-  { id: 5, name: "ส้มสายน้ำผึ้งปั่น", price: 45, category: "Fruit", image: "🍊", color: "bg-orange-100" },
-  { id: 6, name: "บลูเบอร์รี่สมูทตี้", price: 60, category: "Yogurt", image: "🫐", color: "bg-purple-100" },
-  { id: 7, name: "โอริโอ้นมสดปั่น", price: 50, category: "Milk", image: "🍪", color: "bg-gray-100" },
-  { id: 8, name: "โกโก้เข้มข้นปั่น", price: 45, category: "Milk", image: "🍫", color: "bg-orange-50" }, // ใช้สีส้มอ่อนแทน brown
-];
-
-export default function App() {
-  // --- State Management ---
-  const [page, setPage] = useState('home'); // home, cart, login, payment, success
-  const [cart, setCart] = useState([]);
-  const [user, setUser] = useState(null); // null = Guest, object = User
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  
-  // Login Form State
-  const [loginForm, setLoginForm] = useState({ username: '', password: '' });
-
-  // Payment Form State
-  const [paymentForm, setPaymentForm] = useState({ name: '', address: '', slip: null });
-
-  // --- Functions ---
-  
-  // 1. ระบบสั่งซื้อ (Add to Cart)
-  const addToCart = (product) => {
-    setCart(prev => {
-      const existing = prev.find(item => item.id === product.id);
-      if (existing) {
-        return prev.map(item => item.id === product.id ? { ...item, qty: item.qty + 1 } : item);
-      }
-      return [...prev, { ...product, qty: 1 }];
-    });
-  };
-
-  const removeFromCart = (id) => {
-    setCart(prev => prev.filter(item => item.id !== id));
-  };
-
-  const updateQty = (id, delta) => {
-    setCart(prev => prev.map(item => {
-      if (item.id === id) {
-        const newQty = item.qty + delta;
-        return newQty > 0 ? { ...item, qty: newQty } : item;
-      }
-      return item;
-    }));
-  };
-
-  const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-
-  // 2. ระบบสมาชิก (Login Simulation)
-  const handleLogin = (e) => {
-    e.preventDefault();
-    if (loginForm.username && loginForm.password) {
-      setUser({ name: loginForm.username, id: 'USER001' });
-      setPage('home');
-    } else {
-      alert("กรุณากรอกชื่อผู้ใช้และรหัสผ่าน");
-    }
-  };
-
-  // 3. ระบบชำระเงิน (Payment Simulation)
-  const handlePayment = (e) => {
-    e.preventDefault();
-    setPage('success');
-    setCart([]); // Clear cart
-  };
-
-  // --- Components ---
-
-  const Navbar = () => (
-    <nav className="bg-green-600 text-white p-4 sticky top-0 z-50 shadow-md">
-      <div className="container mx-auto flex justify-between items-center">
-        <div className="flex items-center gap-2 cursor-pointer" onClick={() => setPage('home')}>
-          <div className="bg-white text-green-600 p-2 rounded-full font-bold">FS</div>
-          <h1 className="text-xl font-bold">Freshy Smoothie</h1>
-        </div>
+    <style>
+        /* ซ่อนทุกหน้าไว้ก่อน แล้วค่อยใช้ JS สั่งให้แสดงทีละหน้า */
+        .page-section { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .page-section.active { display: block; }
         
-        {/* Desktop Menu */}
-        <div className="hidden md:flex items-center gap-6">
-          <button onClick={() => setPage('home')} className={`hover:text-green-200 ${page === 'home' ? 'font-bold underline' : ''}`}>หน้าแรก</button>
-          <button onClick={() => setPage('cart')} className="relative hover:text-green-200 flex items-center gap-1">
-            <ShoppingCart size={20} />
-            ตะกร้า
-            {cart.length > 0 && <span className="absolute -top-2 -right-2 bg-red-500 text-xs rounded-full w-5 h-5 flex items-center justify-center">{cart.reduce((a,b)=>a+b.qty,0)}</span>}
-          </button>
-          {user ? (
-            <div className="flex items-center gap-2">
-              <User size={20} />
-              <span>{user.name}</span>
-              <button onClick={() => setUser(null)} className="text-xs bg-red-500 px-2 py-1 rounded ml-2">ออก</button>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        body { font-family: 'Sarabun', sans-serif; background-color: #f9fafb; }
+    </style>
+    
+    <!-- นำเข้าฟอนต์ภาษาไทย -->
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body class="text-gray-800">
+
+    <!-- === ส่วนหัว (Navigation Bar) === -->
+    <nav class="bg-green-600 text-white p-4 sticky top-0 z-50 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="navigateTo('home')">
+                <div class="bg-white text-green-600 w-10 h-10 flex items-center justify-center rounded-full font-bold">FS</div>
+                <h1 class="text-xl font-bold hidden md:block">Freshy Smoothie</h1>
             </div>
-          ) : (
-            <button onClick={() => setPage('login')} className="bg-white text-green-600 px-4 py-1 rounded hover:bg-green-100 font-bold">เข้าสู่ระบบ</button>
-          )}
+            
+            <div class="flex items-center gap-4 md:gap-6">
+                <button onclick="navigateTo('home')" class="hover:text-green-200 font-bold"><i class="fa-solid fa-house"></i> หน้าแรก</button>
+                <button onclick="navigateTo('cart')" class="relative hover:text-green-200">
+                    <i class="fa-solid fa-cart-shopping text-xl"></i>
+                    <span id="cart-count" class="absolute -top-2 -right-2 bg-red-500 text-xs rounded-full w-5 h-5 flex items-center justify-center hidden">0</span>
+                </button>
+                
+                <!-- ส่วนแสดงสถานะล็อกอิน -->
+                <div id="user-status">
+                    <button onclick="navigateTo('login')" class="bg-white text-green-600 px-4 py-1 rounded hover:bg-green-100 font-bold">เข้าสู่ระบบ</button>
+                </div>
+            </div>
         </div>
-
-        {/* Mobile Menu Toggle */}
-        <div className="md:hidden">
-            <button onClick={() => setIsMenuOpen(!isMenuOpen)}>
-                {isMenuOpen ? <X /> : <Menu />}
-            </button>
-        </div>
-      </div>
-
-      {/* Mobile Menu Dropdown */}
-      {isMenuOpen && (
-        <div className="md:hidden bg-green-700 p-4 mt-2 rounded">
-            <button onClick={() => {setPage('home'); setIsMenuOpen(false)}} className="block w-full text-left py-2">หน้าแรก</button>
-            <button onClick={() => {setPage('cart'); setIsMenuOpen(false)}} className="block w-full text-left py-2">ตะกร้าสินค้า ({cart.length})</button>
-            {user ? (
-                 <button onClick={() => {setUser(null); setIsMenuOpen(false)}} className="block w-full text-left py-2 text-red-300">ออกจากระบบ ({user.name})</button>
-            ) : (
-                 <button onClick={() => {setPage('login'); setIsMenuOpen(false)}} className="block w-full text-left py-2">เข้าสู่ระบบ</button>
-            )}
-        </div>
-      )}
     </nav>
-  );
 
-  // --- Views ---
-
-  const HomeView = () => (
-    <div className="container mx-auto p-4">
-      {/* Hero Section */}
-      <div className="bg-orange-100 rounded-2xl p-8 mb-8 text-center md:text-left flex flex-col md:flex-row items-center justify-between">
-        <div>
-          <h2 className="text-3xl md:text-5xl font-bold text-orange-600 mb-4">สดชื่น...ถึงใจ!</h2>
-          <p className="text-gray-600 mb-6 text-lg">น้ำผลไม้ปั่นสดใหม่ทุกแก้ว หวานน้อย อร่อยมาก</p>
-          <button className="bg-orange-500 text-white px-8 py-3 rounded-full text-lg font-bold hover:bg-orange-600 shadow-lg transform hover:scale-105 transition">สั่งเลย!</button>
-        </div>
-        <div className="text-9xl mt-4 md:mt-0">🍹</div>
-      </div>
-
-      {/* Filter/Search (Visual Only) */}
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-        <button className="px-4 py-2 bg-green-600 text-white rounded-full whitespace-nowrap">ทั้งหมด</button>
-        <button className="px-4 py-2 bg-white border border-gray-300 rounded-full whitespace-nowrap hover:bg-gray-50">ผลไม้ปั่น</button>
-        <button className="px-4 py-2 bg-white border border-gray-300 rounded-full whitespace-nowrap hover:bg-gray-50">โยเกิร์ตสมูทตี้</button>
-        <button className="px-4 py-2 bg-white border border-gray-300 rounded-full whitespace-nowrap hover:bg-gray-50">นมสด/โกโก้ปั่น</button>
-      </div>
-
-      {/* Product Grid (2.1 การแสดงผลสินค้า) */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {PRODUCTS.map(product => (
-          <div key={product.id} className="bg-white rounded-xl shadow-sm hover:shadow-md transition p-4 border border-gray-100 flex flex-col items-center">
-            <div className={`w-32 h-32 ${product.color} rounded-full flex items-center justify-center text-6xl mb-4`}>
-              {product.image}
+    <!-- ========================================== -->
+    <!-- หน้าที่ 1: หน้าแรก (Home Page) -->
+    <!-- ========================================== -->
+    <div id="home" class="page-section active container mx-auto p-4">
+        <!-- Banner -->
+        <div class="bg-orange-100 rounded-2xl p-8 mb-8 flex flex-col md:flex-row items-center justify-between shadow-sm">
+            <div class="mb-4 md:mb-0 text-center md:text-left">
+                <h2 class="text-3xl md:text-5xl font-bold text-orange-600 mb-2">สดชื่น...ถึงใจ!</h2>
+                <p class="text-gray-600 mb-4 text-lg">น้ำผลไม้ปั่นสดใหม่ทุกแก้ว หวานน้อย อร่อยมาก</p>
+                <button onclick="scrollToMenu()" class="bg-orange-500 text-white px-8 py-3 rounded-full text-lg font-bold hover:bg-orange-600 shadow-lg transform hover:scale-105 transition">สั่งเลย!</button>
             </div>
-            <h3 className="font-bold text-lg text-gray-800 text-center">{product.name}</h3>
-            <p className="text-gray-500 mb-4">{product.price} บาท</p>
-            <button 
-              onClick={() => addToCart(product)}
-              className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 flex items-center justify-center gap-2"
-            >
-              <Plus size={16} /> ใส่ตะกร้า
-            </button>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  const CartView = () => (
-    <div className="container mx-auto p-4 max-w-2xl">
-      <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-        <ShoppingCart /> ตะกร้าสินค้าของฉัน
-      </h2>
-      
-      {cart.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-xl shadow-sm">
-          <p className="text-gray-500 text-lg">ยังไม่มีสินค้าในตะกร้า</p>
-          <button onClick={() => setPage('home')} className="mt-4 text-green-600 underline">กลับไปเลือกซื้อสินค้า</button>
+            <div class="text-9xl animate-bounce">🍹</div>
         </div>
-      ) : (
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          {/* List Items (2.3 ระบบการสั่งซื้อ) */}
-          <div className="space-y-4">
-            {cart.map(item => (
-              <div key={item.id} className="flex justify-between items-center border-b pb-4">
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 ${item.color} rounded-lg flex items-center justify-center text-2xl`}>{item.image}</div>
-                  <div>
-                    <h4 className="font-bold">{item.name}</h4>
-                    <p className="text-sm text-gray-500">{item.price} บาท / แก้ว</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <button onClick={() => updateQty(item.id, -1)} className="p-1 bg-gray-100 rounded hover:bg-gray-200"><Minus size={16}/></button>
-                  <span className="font-bold w-6 text-center">{item.qty}</span>
-                  <button onClick={() => updateQty(item.id, 1)} className="p-1 bg-gray-100 rounded hover:bg-gray-200"><Plus size={16}/></button>
-                  <button onClick={() => removeFromCart(item.id)} className="text-red-500 ml-2"><Trash2 size={18}/></button>
-                </div>
-              </div>
-            ))}
-          </div>
 
-          <div className="mt-6 border-t pt-4">
-            <div className="flex justify-between text-lg mb-2">
-              <span>รวมทั้งหมด</span>
-              <span className="font-bold">{cartTotal} บาท</span>
-            </div>
-            <button 
-              onClick={() => {
-                if(!user) {
-                  alert("กรุณาเข้าสู่ระบบก่อนชำระเงิน");
-                  setPage('login');
-                } else {
-                  setPage('payment');
-                }
-              }}
-              className="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 mt-4"
-            >
-              ดำเนินการชำระเงิน
-            </button>
-          </div>
+        <!-- หมวดหมู่ -->
+        <div class="flex gap-2 mb-6 overflow-x-auto pb-2" id="menu-section">
+            <button class="px-4 py-2 bg-green-600 text-white rounded-full whitespace-nowrap shadow-sm">ทั้งหมด</button>
+            <button class="px-4 py-2 bg-white border border-gray-300 rounded-full whitespace-nowrap hover:bg-gray-50">ผลไม้ปั่น</button>
+            <button class="px-4 py-2 bg-white border border-gray-300 rounded-full whitespace-nowrap hover:bg-gray-50">โยเกิร์ตสมูทตี้</button>
+            <button class="px-4 py-2 bg-white border border-gray-300 rounded-full whitespace-nowrap hover:bg-gray-50">นมสด/โกโก้</button>
         </div>
-      )}
-    </div>
-  );
 
-  const LoginView = () => (
-    <div className="container mx-auto p-4 flex items-center justify-center min-h-[80vh]">
-      <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md border border-gray-100">
-        <h2 className="text-2xl font-bold text-center mb-6 text-green-700">เข้าสู่ระบบ / สมัครสมาชิก</h2>
-        <p className="text-center text-gray-500 text-sm mb-6">(โจทย์ข้อ 2.2 ระบบจัดการสมาชิก)</p>
-        
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label className="block text-gray-700 mb-2">ชื่อผู้ใช้ (Username)</label>
-            <input 
-              type="text" 
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-              placeholder="กรอกชื่อผู้ใช้"
-              value={loginForm.username}
-              onChange={(e) => setLoginForm({...loginForm, username: e.target.value})}
-            />
-          </div>
-          <div>
-            <label className="block text-gray-700 mb-2">รหัสผ่าน (Password)</label>
-            <input 
-              type="password" 
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-              placeholder="กรอกรหัสผ่าน"
-              value={loginForm.password}
-              onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
-            />
-          </div>
-          <button type="submit" className="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700">
-            เข้าสู่ระบบ
-          </button>
-          <div className="text-center text-sm text-gray-500 mt-4">
-            ยังไม่มีบัญชี? <span className="text-green-600 cursor-pointer underline">สมัครสมาชิกใหม่</span>
-          </div>
-        </form>
-      </div>
+        <!-- รายการสินค้า (Grid) -->
+        <div id="product-list" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <!-- สินค้าจะถูกสร้างด้วย JavaScript -->
+        </div>
     </div>
-  );
 
-  const PaymentView = () => (
-    <div className="container mx-auto p-4 max-w-2xl">
-       <button onClick={() => setPage('cart')} className="mb-4 text-gray-500 flex items-center gap-1 hover:text-gray-800">
-        ← ย้อนกลับ
-      </button>
-      <div className="bg-white rounded-xl shadow-lg p-8">
-        <h2 className="text-2xl font-bold mb-6 text-green-700 flex items-center gap-2">
-          <CreditCard /> แจ้งชำระเงิน
+    <!-- ========================================== -->
+    <!-- หน้าที่ 2: ตะกร้าสินค้า (Cart Page) -->
+    <!-- ========================================== -->
+    <div id="cart" class="page-section container mx-auto p-4 max-w-2xl">
+        <h2 class="text-2xl font-bold mb-6 flex items-center gap-2 text-gray-700">
+            <i class="fa-solid fa-cart-shopping"></i> ตะกร้าสินค้าของฉัน
         </h2>
-        <p className="text-gray-500 mb-6 border-b pb-4">(โจทย์ข้อ 2.4 ระบบการชำระเงิน)</p>
-
-        <div className="bg-gray-50 p-4 rounded-lg mb-6 flex justify-between items-center">
-            <span className="text-gray-700">ยอดชำระทั้งหมด</span>
-            <span className="text-2xl font-bold text-green-600">{cartTotal} บาท</span>
+        
+        <div id="cart-items" class="bg-white rounded-xl shadow-sm p-6 mb-4">
+            <!-- รายการในตะกร้าจะแสดงที่นี่ -->
+            <p class="text-center text-gray-500 py-10">ยังไม่มีสินค้าในตะกร้า</p>
         </div>
 
-        <form onSubmit={handlePayment} className="space-y-4">
-          <div>
-            <label className="block text-gray-700 mb-2">ชื่อ-นามสกุล ผู้รับ</label>
-            <input required type="text" className="w-full p-3 border border-gray-300 rounded-lg" defaultValue={user?.name} />
-          </div>
-          <div>
-            <label className="block text-gray-700 mb-2">ที่อยู่จัดส่ง</label>
-            <textarea required className="w-full p-3 border border-gray-300 rounded-lg h-24" placeholder="บ้านเลขที่, ถนน, แขวง/ตำบล..."></textarea>
-          </div>
-          
-          <div className="border border-dashed border-green-300 rounded-lg p-6 text-center bg-green-50">
-            <p className="font-bold text-green-700 mb-2">โอนเงินมาที่: ธนาคารกรุงไทย</p>
-            <p className="text-lg">XXX-X-XXXXX-X</p>
-            <p className="text-sm text-gray-500 mt-2">ชื่อบัญชี: ร้านน้ำปั่นเฟรชชี่</p>
-          </div>
-
-          <div>
-            <label className="block text-gray-700 mb-2">แนบสลิปหลักฐานการโอน</label>
-            <input type="file" className="w-full p-2 border border-gray-300 rounded-lg" />
-          </div>
-
-          <button type="submit" className="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 mt-4">
-            ยืนยันการแจ้งโอน
-          </button>
-        </form>
-      </div>
+        <div id="cart-summary" class="bg-white rounded-xl shadow-sm p-6 hidden">
+            <div class="flex justify-between text-lg mb-4 border-t pt-4">
+                <span>ยอดรวมทั้งหมด</span>
+                <span id="total-price" class="font-bold text-green-600 text-xl">0 บาท</span>
+            </div>
+            <button onclick="checkOut()" class="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 shadow-md transition">
+                ดำเนินการชำระเงิน <i class="fa-solid fa-arrow-right ml-2"></i>
+            </button>
+        </div>
     </div>
-  );
 
-  const SuccessView = () => (
-    <div className="container mx-auto p-4 min-h-[80vh] flex flex-col items-center justify-center text-center">
-      <div className="bg-green-100 p-6 rounded-full mb-6">
-        <CheckCircle size={64} className="text-green-600" />
-      </div>
-      <h2 className="text-3xl font-bold text-gray-800 mb-2">สั่งซื้อสำเร็จ!</h2>
-      <p className="text-gray-600 mb-8">ขอบคุณที่อุดหนุน ทางร้านกำลังปั่นเครื่องดื่มสุดฝีมือให้คุณ</p>
-      <button onClick={() => setPage('home')} className="bg-green-600 text-white px-8 py-3 rounded-full font-bold hover:bg-green-700">
-        กลับหน้าแรก
-      </button>
+    <!-- ========================================== -->
+    <!-- หน้าที่ 3: เข้าสู่ระบบ (Login Page) -->
+    <!-- ========================================== -->
+    <div id="login" class="page-section container mx-auto p-4 flex items-center justify-center min-h-[70vh]">
+        <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md border border-gray-100">
+            <h2 class="text-2xl font-bold text-center mb-6 text-green-700">เข้าสู่ระบบสมาชิก</h2>
+            <form onsubmit="handleLogin(event)">
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">ชื่อผู้ใช้ (Username)</label>
+                    <input type="text" id="username" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="admin" required>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-gray-700 mb-2">รหัสผ่าน (Password)</label>
+                    <input type="password" id="password" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="1234" required>
+                </div>
+                <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 shadow-md">
+                    เข้าสู่ระบบ
+                </button>
+                <p class="text-center text-gray-500 mt-4 text-sm">ทดลองใส่: admin / 1234</p>
+            </form>
+        </div>
     </div>
-  );
 
-  return (
-    <div className="min-h-screen bg-gray-50 font-sans text-gray-800">
-      <Navbar />
-      
-      {page === 'home' && <HomeView />}
-      {page === 'cart' && <CartView />}
-      {page === 'login' && <LoginView />}
-      {page === 'payment' && <PaymentView />}
-      {page === 'success' && <SuccessView />}
-      
-      <footer className="bg-gray-800 text-gray-400 py-8 mt-12 text-center">
-        <p>© 2024 ร้านน้ำปั่น Freshy Smoothie - พัฒนาเพื่อการศึกษา (ข้อสอบภาคปฏิบัติ)</p>
-      </footer>
+    <!-- ========================================== -->
+    <!-- หน้าที่ 4: ชำระเงิน (Payment Page) -->
+    <!-- ========================================== -->
+    <div id="payment" class="page-section container mx-auto p-4 max-w-2xl">
+        <button onclick="navigateTo('cart')" class="mb-4 text-gray-500 hover:text-gray-800"><i class="fa-solid fa-arrow-left"></i> ย้อนกลับ</button>
+        
+        <div class="bg-white rounded-xl shadow-lg p-8">
+            <h2 class="text-2xl font-bold mb-6 text-green-700 flex items-center gap-2">
+                <i class="fa-solid fa-credit-card"></i> แจ้งชำระเงิน
+            </h2>
+            
+            <div class="bg-green-50 p-4 rounded-lg mb-6 flex justify-between items-center border border-green-200">
+                <span class="text-gray-700">ยอดชำระรวม</span>
+                <span id="payment-total" class="text-2xl font-bold text-green-600">0 บาท</span>
+            </div>
+
+            <form onsubmit="submitPayment(event)">
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">ชื่อ-นามสกุล ผู้รับ</label>
+                    <input type="text" class="w-full p-3 border border-gray-300 rounded-lg" required placeholder="สมชาย ใจดี">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">ที่อยู่จัดส่ง</label>
+                    <textarea class="w-full p-3 border border-gray-300 rounded-lg h-24" required placeholder="บ้านเลขที่, ถนน, แขวง/ตำบล..."></textarea>
+                </div>
+
+                <div class="border-2 border-dashed border-green-300 rounded-lg p-6 text-center bg-green-50 mb-6">
+                    <p class="font-bold text-green-700 mb-2">โอนเงินมาที่: ธนาคารกรุงไทย</p>
+                    <p class="text-xl font-mono select-all">XXX-X-XXXXX-X</p>
+                    <p class="text-sm text-gray-500 mt-2">ชื่อบัญชี: ร้านน้ำปั่นเฟรชชี่</p>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-gray-700 mb-2">แนบสลิปหลักฐานการโอน</label>
+                    <input type="file" class="w-full p-2 border border-gray-300 rounded-lg bg-gray-50">
+                </div>
+
+                <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 shadow-md">
+                    ยืนยันการสั่งซื้อ
+                </button>
+            </form>
+        </div>
     </div>
-  );
-}
+
+    <!-- ========================================== -->
+    <!-- หน้าสุดท้าย: สำเร็จ (Success Page) -->
+    <!-- ========================================== -->
+    <div id="success" class="page-section container mx-auto p-4 min-h-[70vh] flex flex-col items-center justify-center text-center">
+        <div class="bg-green-100 p-8 rounded-full mb-6 animate-bounce">
+            <i class="fa-solid fa-check text-6xl text-green-600"></i>
+        </div>
+        <h2 class="text-3xl font-bold text-gray-800 mb-2">สั่งซื้อสำเร็จ!</h2>
+        <p class="text-gray-600 mb-8">ขอบคุณที่อุดหนุน ทางร้านได้รับออเดอร์เรียบร้อยแล้ว</p>
+        <button onclick="resetApp()" class="bg-green-600 text-white px-8 py-3 rounded-full font-bold hover:bg-green-700 shadow-lg">
+            กลับหน้าแรก
+        </button>
+    </div>
+
+    <!-- JavaScript สำหรับควบคุมการทำงาน -->
+    <script>
+        // --- ข้อมูลสินค้า ---
+        const products = [
+            { id: 1, name: "แตงโมปั่นเย็นชื่นใจ", price: 35, image: "🍉", color: "bg-red-100" },
+            { id: 2, name: "มะม่วงน้ำดอกไม้ปั่น", price: 50, image: "🥭", color: "bg-yellow-100" },
+            { id: 3, name: "สตรอว์เบอร์รี่โยเกิร์ต", price: 55, image: "🍓", color: "bg-pink-100" },
+            { id: 4, name: "มะนาวปั่นจี๊ดจ๊าด", price: 40, image: "🍋", color: "bg-green-100" },
+            { id: 5, name: "ส้มสายน้ำผึ้งปั่น", price: 45, image: "🍊", color: "bg-orange-100" },
+            { id: 6, name: "บลูเบอร์รี่สมูทตี้", price: 60, image: "🫐", color: "bg-purple-100" },
+            { id: 7, name: "โอริโอ้นมสดปั่น", price: 50, image: "🍪", color: "bg-gray-100" },
+            { id: 8, name: "โกโก้เข้มข้นปั่น", price: 45, image: "🍫", color: "bg-orange-100" },
+        ];
+
+        // --- ตัวแปรเก็บข้อมูล (State) ---
+        let cart = [];
+        let currentUser = null;
+
+        // --- เริ่มต้นทำงานเมื่อโหลดหน้าเว็บ ---
+        window.onload = function() {
+            renderProductList();
+        };
+
+        // 1. ฟังก์ชันแสดงสินค้าหน้าแรก
+        function renderProductList() {
+            const list = document.getElementById('product-list');
+            list.innerHTML = products.map(p => `
+                <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition p-4 border border-gray-100 flex flex-col items-center">
+                    <div class="w-24 h-24 md:w-32 md:h-32 ${p.color} rounded-full flex items-center justify-center text-5xl md:text-6xl mb-4">
+                        ${p.image}
+                    </div>
+                    <h3 class="font-bold text-lg text-gray-800 text-center mb-1">${p.name}</h3>
+                    <p class="text-gray-500 mb-4 font-medium">${p.price} บาท</p>
+                    <button onclick="addToCart(${p.id})" class="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 flex items-center justify-center gap-2 transition active:scale-95">
+                        <i class="fa-solid fa-plus"></i> ใส่ตะกร้า
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // 2. ระบบตะกร้าสินค้า
+        function addToCart(id) {
+            const product = products.find(p => p.id === id);
+            const existingItem = cart.find(item => item.id === id);
+
+            if (existingItem) {
+                existingItem.qty++;
+            } else {
+                cart.push({ ...product, qty: 1 });
+            }
+            
+            updateCartUI();
+            alert(`เพิ่ม "${product.name}" ลงตะกร้าแล้ว!`);
+        }
+
+        function updateCartUI() {
+            // อัปเดตตัวเลขที่ไอคอนตะกร้า
+            const count = cart.reduce((sum, item) => sum + item.qty, 0);
+            const badge = document.getElementById('cart-count');
+            
+            if (count > 0) {
+                badge.innerText = count;
+                badge.classList.remove('hidden');
+                document.getElementById('cart-summary').classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+                document.getElementById('cart-summary').classList.add('hidden');
+            }
+
+            // แสดงรายการในหน้าตะกร้า
+            const cartContainer = document.getElementById('cart-items');
+            if (cart.length === 0) {
+                cartContainer.innerHTML = '<p class="text-center text-gray-500 py-10">ยังไม่มีสินค้าในตะกร้า</p>';
+            } else {
+                cartContainer.innerHTML = cart.map(item => `
+                    <div class="flex justify-between items-center border-b pb-4 mb-4 last:border-0 last:mb-0 last:pb-0">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 ${item.color} rounded-lg flex items-center justify-center text-2xl">${item.image}</div>
+                            <div>
+                                <h4 class="font-bold text-gray-800">${item.name}</h4>
+                                <p class="text-sm text-gray-500">${item.price} บาท / แก้ว</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button onclick="updateQty(${item.id}, -1)" class="w-8 h-8 bg-gray-100 rounded hover:bg-gray-200 text-gray-600 font-bold">-</button>
+                            <span class="font-bold w-6 text-center">${item.qty}</span>
+                            <button onclick="updateQty(${item.id}, 1)" class="w-8 h-8 bg-gray-100 rounded hover:bg-gray-200 text-gray-600 font-bold">+</button>
+                            <button onclick="removeFromCart(${item.id})" class="text-red-500 ml-3 hover:text-red-700"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // คำนวณราคารวม
+            const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            document.getElementById('total-price').innerText = total + " บาท";
+            document.getElementById('payment-total').innerText = total + " บาท";
+        }
+
+        function updateQty(id, delta) {
+            const item = cart.find(i => i.id === id);
+            if (item) {
+                item.qty += delta;
+                if (item.qty <= 0) removeFromCart(id);
+            }
+            updateCartUI();
+        }
+
+        function removeFromCart(id) {
+            cart = cart.filter(item => item.id !== id);
+            updateCartUI();
+        }
+
+        // 3. ระบบนำทาง (เปลี่ยนหน้า)
+        function navigateTo(pageId) {
+            // ซ่อนทุกหน้า
+            document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+            // แสดงหน้าที่เลือก
+            document.getElementById(pageId).classList.add('active');
+            // เลื่อนไปบนสุด
+            window.scrollTo(0, 0);
+            
+            // ถ้าเข้าหน้าตะกร้า ให้อัปเดตข้อมูลล่าสุด
+            if(pageId === 'cart') updateCartUI();
+        }
+
+        function scrollToMenu() {
+            document.getElementById('menu-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 4. ระบบจัดการสมาชิก
+        function handleLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('username').value;
+            currentUser = user;
+            
+            // อัปเดต UI ตรงเมนูบาร์
+            document.getElementById('user-status').innerHTML = `
+                <span class="mr-2 font-bold text-white"><i class="fa-solid fa-user"></i> ${user}</span>
+                <button onclick="logout()" class="text-xs bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">ออก</button>
+            `;
+            
+            alert(`ยินดีต้อนรับคุณ ${user}!`);
+            navigateTo('home');
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('user-status').innerHTML = `
+                <button onclick="navigateTo('login')" class="bg-white text-green-600 px-4 py-1 rounded hover:bg-green-100 font-bold">เข้าสู่ระบบ</button>
+            `;
+            navigateTo('home');
+        }
+
+        // 5. ระบบชำระเงิน
+        function checkOut() {
+            if (!currentUser) {
+                alert('กรุณาเข้าสู่ระบบสมาชิกก่อนชำระเงิน');
+                navigateTo('login');
+            } else {
+                navigateTo('payment');
+            }
+        }
+
+        function submitPayment(e) {
+            e.preventDefault();
+            // จำลองการส่งข้อมูล
+            setTimeout(() => {
+                navigateTo('success');
+                cart = []; // ล้างตะกร้า
+                updateCartUI();
+            }, 500);
+        }
+
+        function resetApp() {
+            navigateTo('home');
+        }
+
+    </script>
+</body>
+</html>
