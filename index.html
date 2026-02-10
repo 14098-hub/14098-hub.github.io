@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>Katana Spirit | ร้านดาบญี่ปุ่น</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: "Tahoma", sans-serif;
+            background-color: #111;
+            color: #fff;
+        }
+        header {
+            background: linear-gradient(to right, #000, #8b0000);
+            padding: 30px;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 40px;
+        }
+        nav {
+            background-color: #000;
+            padding: 10px;
+            text-align: center;
+        }
+        nav a {
+            color: #fff;
+            margin: 0 15px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        nav a:hover {
+            color: #ff4d4d;
+        }
+        section {
+            padding: 40px;
+        }
+        .products {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background-color: #1c1c1c;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(255,0,0,0.3);
+        }
+        .card h3 {
+            color: #ff4d4d;
+        }
+        footer {
+            background-color: #000;
+            text-align: center;
+            padding: 15px;
+            font-size: 14px;
+            color: #aaa;
+        }
+        .warning {
+            background-color: #330000;
+            padding: 15px;
+            border-left: 5px solid red;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>Katana Spirit</h1>
+    <p>ดาบญี่ปุ่น คือจิตวิญญาณของซามูไร</p>
+</header>
+
+<nav>
+    <a href="#home">หน้าแรก</a>
+    <a href="#history">ประวัติ</a>
+    <a href="#products">สินค้า</a>
+    <a href="#contact">ติดต่อ</a>
+</nav>
+
+<section id="home">
+    <h2>ยินดีต้อนรับ</h2>
+    <p>
+        Katana Spirit เป็นเว็บไซต์ตัวอย่างร้านจำหน่ายดาบญี่ปุ่นเชิงสะสม  
+        และงานศิลป์ เพื่อการศึกษาและการออกแบบเว็บไซต์
+    </p>
+
+    <div class="warning">
+        ⚠️ เว็บไซต์นี้เป็นตัวอย่างทางการศึกษา  
+        ดาบทั้งหมดเป็นของจำลอง ไม่สามารถใช้งานจริงได้
+    </div>
+</section>
+
+<section id="history">
+    <h2>ประวัติดาบญี่ปุ่น</h2>
+    <p>
+        ดาบญี่ปุ่นหรือ “คาตานะ” เป็นอาวุธประจำกายของซามูไร  
+        สื่อถึงเกียรติยศ วินัย และวิถีบูชิโด
+    </p>
+    <ul>
+        <li>Katana – ดาบยาว</li>
+        <li>Wakizashi – ดาบสั้น</li>
+        <li>Tanto – มีดสั้น</li>
+    </ul>
+</section>
+
+<section id="products">
+    <h2>สินค้าแนะนำ</h2>
+    <div class="products">
+        <div class="card">
+            <h3>Katana จำลอง</h3>
+            <p>ดาบเหล็กไม่คม สำหรับสะสม</p>
+            <p>ราคา: 2,999 บาท</p>
+        </div>
+
+        <div class="card">
+            <h3>ดาบไม้ Bokken</h3>
+            <p>ใช้ฝึกซ้อมศิลปะการต่อสู้</p>
+            <p>ราคา: 890 บาท</p>
+        </div>
+
+        <div class="card">
+            <h3>ดาบแขวนโชว์</h3>
+            <p>ตกแต่งบ้าน สไตล์ญี่ปุ่น</p>
+            <p>ราคา: 1,590 บาท</p>
+        </div>
+    </div>
+</section>
+
+<section id="contact">
+    <h2>ติดต่อเรา</h2>
+    <p>ร้าน Katana Spirit (ร้านสมมติ)</p>
+    <p>Email: katana@sample.com</p>
+    <p>Facebook: Katana Spirit</p>
+</section>
+
+<footer>
+    © 2026 Katana Spirit | เว็บไซต์ตัวอย่างเพื่อการศึกษา
+</footer>
+
+</body>
+</html>
